@@ -6,26 +6,61 @@
 
 ## 安装
 
-从 [Releases](https://github.com/hduhelp/cli/releases) 下载与你的操作系统和 CPU 架构匹配的压缩包：
+### macOS 与 Linux：一行安装
+
+`v0.1.2` 及后续版本提供安装脚本。它会自动识别 macOS/Linux 与 CPU 架构，从最新稳定版 Release 下载 CLI：
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/hduhelp/cli/main/install.sh | sh
+```
+
+默认安装到 `$HOME/.local/bin`，不会修改 shell 配置。若该目录不在 `PATH`，脚本会打印可复制的配置命令。
+
+更新时重新运行同一条命令即可。也可以指定版本或安装目录：
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/hduhelp/cli/main/install.sh | sh -s -- --version 0.1.2
+curl -fsSL https://raw.githubusercontent.com/hduhelp/cli/main/install.sh | sh -s -- --install-dir "$HOME/bin"
+```
+
+支持的自动安装平台：
+
+| 平台 | 架构 |
+| --- | --- |
+| macOS | Apple Silicon（arm64）、Intel（amd64） |
+| Linux | x86_64（amd64）、aarch64（arm64） |
+
+### 完全卸载
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/hduhelp/cli/main/install.sh | sh -s -- --uninstall
+```
+
+脚本会要求输入 `remove` 确认（自动化时添加 `--yes`）。它删除安装器管理的二进制、安装状态、CLI 配置目录以及兼容的旧 Skills 目录；不会修改 `PATH` 或 shell 配置。为避免误删，所有待删路径必须解析到 `HOME` 内；否则卸载会拒绝执行。
+
+### Windows 与手动安装
+
+Windows 暂不提供 shell 安装脚本。请从 [Releases](https://github.com/hduhelp/cli/releases) 下载与你的操作系统和 CPU 架构匹配的压缩包：
 
 | 平台 | 下载文件 |
 | --- | --- |
 | Intel Mac | `hduhelp-cli_<version>_darwin_amd64.tar.gz` |
 | Apple Silicon Mac | `hduhelp-cli_<version>_darwin_arm64.tar.gz` |
+| Linux x86_64 | `hduhelp-cli_<version>_linux_amd64.tar.gz` |
+| Linux ARM64 | `hduhelp-cli_<version>_linux_arm64.tar.gz` |
 | Intel/AMD Windows | `hduhelp-cli_<version>_windows_amd64.zip` |
 | Windows on ARM | `hduhelp-cli_<version>_windows_arm64.zip` |
 
-每个 Release 都附带 `SHA256SUMS`。下载后请先校验压缩包，再解压并将程序所在目录加入 `PATH`。
+手动下载后，解压并将程序所在目录加入 `PATH`。每个 Release 附带 `SHA256SUMS`，可按需用于校验下载文件。
 
-macOS 示例：
+macOS/Linux 手动安装示例：
 
 ```bash
-VERSION=0.1.0
-ARCH=arm64 # Intel Mac 使用 amd64
-curl -LO "https://github.com/hduhelp/cli/releases/download/v${VERSION}/hduhelp-cli_${VERSION}_darwin_${ARCH}.tar.gz"
-curl -LO "https://github.com/hduhelp/cli/releases/download/v${VERSION}/SHA256SUMS"
-grep "hduhelp-cli_${VERSION}_darwin_${ARCH}.tar.gz" SHA256SUMS | shasum -a 256 -c -
-tar -xzf "hduhelp-cli_${VERSION}_darwin_${ARCH}.tar.gz"
+VERSION=0.1.2 # 替换为 Release 页面中的实际版本
+OS=darwin     # Linux 使用 linux
+ARCH=arm64    # Intel/x86_64 使用 amd64
+curl -LO "https://github.com/hduhelp/cli/releases/download/v${VERSION}/hduhelp-cli_${VERSION}_${OS}_${ARCH}.tar.gz"
+tar -xzf "hduhelp-cli_${VERSION}_${OS}_${ARCH}.tar.gz"
 mkdir -p "$HOME/.local/bin"
 mv hduhelp-cli "$HOME/.local/bin/"
 ```
@@ -33,14 +68,14 @@ mv hduhelp-cli "$HOME/.local/bin/"
 Windows PowerShell 示例：
 
 ```powershell
-$version = "0.1.0"
+$version = "0.1.2" # 替换为 Release 页面中的实际版本
 $arch = "amd64" # Windows on ARM 使用 arm64
 Invoke-WebRequest "https://github.com/hduhelp/cli/releases/download/v$version/hduhelp-cli_${version}_windows_${arch}.zip" -OutFile cli.zip
 Expand-Archive cli.zip -DestinationPath "$HOME\bin\hduhelp-cli"
 # 将 $HOME\bin\hduhelp-cli 加入用户 PATH，然后重开终端。
 ```
 
-> 下载页以实际可用的版本号为准。首次发布前，Release 列表可能为空。
+> 安装脚本为便利功能：当前不执行签名或校验和验证。若需要自行校验手动下载的压缩包，可使用 Release 中的 `SHA256SUMS`。
 
 ## 快速开始
 
@@ -115,7 +150,12 @@ hduhelp-cli skills doctor
 - CLI 只保存 PAT，不保存密码；token 仅显示前缀。
 - PAT 的 scope 是最小权限集合；需要新权限时使用 `auth reauthorize`。
 - 本地配置默认保存到操作系统用户配置目录；可用 `HDUHELP_CLI_CONFIG` 覆盖。
-- 发布压缩包应始终使用 Release 中的 `SHA256SUMS` 校验。
+- 安装脚本不修改 shell 配置，也不会删除 `HOME` 外的文件。
+- Release 提供 `SHA256SUMS` 供手动下载时选用；当前安装脚本不执行签名或校验和验证。
+
+## 发布
+
+CLI 源码在 [hduhelp/hduhelp-neo](https://github.com/hduhelp/hduhelp-neo)。当该仓库的 `release.yml` 中 CLI 版本递增并合并到 `main` 时，发布流程会构建 macOS、Linux 和 Windows 的多架构产物，更新本仓库的 `install.sh`、`version.json` 与 `skills/`，并创建对应 GitHub Release。
 
 ## 开发
 

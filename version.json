@@ -1,0 +1,28 @@
+{
+  "version": "0.1.0",
+  "revision": "741003d2b1fa2e7979fc978ef3394f4a1cb1046c",
+  "manifest_sha256": "e392ad6e8ffdb568cbff50de74369de02bb062d012a5a9d117db33ad0d373c91",
+  "built_at": "2026-07-12T15:22:00Z",
+  "platforms": [
+    {
+      "os": "darwin",
+      "arch": "amd64",
+      "archive": "hduhelp-cli_0.1.0_darwin_amd64.tar.gz"
+    },
+    {
+      "os": "darwin",
+      "arch": "arm64",
+      "archive": "hduhelp-cli_0.1.0_darwin_arm64.tar.gz"
+    },
+    {
+      "os": "windows",
+      "arch": "amd64",
+      "archive": "hduhelp-cli_0.1.0_windows_amd64.zip"
+    },
+    {
+      "os": "windows",
+      "arch": "arm64",
+      "archive": "hduhelp-cli_0.1.0_windows_arm64.zip"
+    }
+  ]
+}

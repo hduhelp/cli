@@ -8,7 +8,7 @@
 
 ### macOS 与 Linux：一行安装
 
-`v0.1.2` 及后续版本提供安装脚本。它会自动识别 macOS/Linux 与 CPU 架构，从最新稳定版 Release 下载 CLI：
+`v0.1.3` 及后续版本提供安装脚本。它会自动识别 macOS/Linux 与 CPU 架构，从最新稳定版 Release 下载 CLI：
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/hduhelp/cli/main/install.sh | sh
@@ -38,9 +38,23 @@ curl -fsSL https://raw.githubusercontent.com/hduhelp/cli/main/install.sh | sh -s
 
 脚本会要求输入 `remove` 确认（自动化时添加 `--yes`）。它删除安装器管理的二进制、安装状态、CLI 配置目录以及兼容的旧 Skills 目录；不会修改 `PATH` 或 shell 配置。为避免误删，所有待删路径必须解析到 `HOME` 内；否则卸载会拒绝执行。
 
-### Windows 与手动安装
+### Windows：一行安装
 
-Windows 暂不提供 shell 安装脚本。请从 [Releases](https://github.com/hduhelp/cli/releases) 下载与你的操作系统和 CPU 架构匹配的压缩包：
+在 Windows 默认的 PowerShell 中运行：
+
+```powershell
+irm https://raw.githubusercontent.com/hduhelp/cli/main/install.ps1 | iex
+```
+
+它会识别 x64/ARM64，下载 zip 并安装到 `$HOME\\bin`。更新时重新运行同一条命令即可；安装器不会修改用户 `PATH`。
+
+卸载：
+
+```powershell
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/hduhelp/cli/main/install.ps1))) -Uninstall
+```
+
+也可以从 [Releases](https://github.com/hduhelp/cli/releases) 手动下载与你的操作系统和 CPU 架构匹配的压缩包：
 
 | 平台 | 下载文件 |
 | --- | --- |
@@ -56,7 +70,7 @@ Windows 暂不提供 shell 安装脚本。请从 [Releases](https://github.com/h
 macOS/Linux 手动安装示例：
 
 ```bash
-VERSION=0.1.2 # 替换为 Release 页面中的实际版本
+VERSION=0.1.3 # 替换为 Release 页面中的实际版本
 OS=darwin     # Linux 使用 linux
 ARCH=arm64    # Intel/x86_64 使用 amd64
 curl -LO "https://github.com/hduhelp/cli/releases/download/v${VERSION}/hduhelp-cli_${VERSION}_${OS}_${ARCH}.tar.gz"
@@ -68,7 +82,7 @@ mv hduhelp-cli "$HOME/.local/bin/"
 Windows PowerShell 示例：
 
 ```powershell
-$version = "0.1.2" # 替换为 Release 页面中的实际版本
+$version = "0.1.3" # 替换为 Release 页面中的实际版本
 $arch = "amd64" # Windows on ARM 使用 arm64
 Invoke-WebRequest "https://github.com/hduhelp/cli/releases/download/v$version/hduhelp-cli_${version}_windows_${arch}.zip" -OutFile cli.zip
 Expand-Archive cli.zip -DestinationPath "$HOME\bin\hduhelp-cli"
@@ -155,7 +169,7 @@ hduhelp-cli skills doctor
 
 ## 发布
 
-CLI 源码在 [hduhelp/hduhelp-neo](https://github.com/hduhelp/hduhelp-neo)。当该仓库的 `release.yml` 中 CLI 版本递增并合并到 `main` 时，发布流程会构建 macOS、Linux 和 Windows 的多架构产物，更新本仓库的 `install.sh`、`version.json` 与 `skills/`，并创建对应 GitHub Release。
+CLI 源码在 [hduhelp/hduhelp-neo](https://github.com/hduhelp/hduhelp-neo)。当该仓库的 `release.yml` 中 CLI 版本递增并合并到 `main` 时，发布流程会构建 macOS、Linux 和 Windows 的多架构产物，更新本仓库的 `install.sh`、`install.ps1`、`version.json` 与 `skills/`，并创建对应 GitHub Release。
 
 ## 开发
 

@@ -1,7 +1,7 @@
 ---
 name: hduhelp-cli/graduate
 source: generated
-manifest_sha256: 414ee3f014eb69d5134e1553d6b530d72fe1b901228385a24611f8b080756afe
+manifest_sha256: 738449e62bdf88f6551159a699d47438c40603f04fb7a09cf163283710f2fe0f
 ---
 
 # hduhelp-cli graduate skill

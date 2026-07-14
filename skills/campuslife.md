@@ -1,7 +1,7 @@
 ---
 name: hduhelp-cli/campuslife
 source: generated
-manifest_sha256: 414ee3f014eb69d5134e1553d6b530d72fe1b901228385a24611f8b080756afe
+manifest_sha256: 738449e62bdf88f6551159a699d47438c40603f04fb7a09cf163283710f2fe0f
 ---
 
 # hduhelp-cli campuslife skill
@@ -53,7 +53,7 @@ This file is generated from the code-owned manifest. Do not edit it.
 
 - operationId: `CampusLifeService_ElectricBalance`
 - HTTP: GET /hduhelp-neo/campuslife/electric/balance
-- 说明: 查询绑定电表余额
+- 说明: 查询宿舍电费余额(绑定电表)
 - 必需 scope: campuslife:electricity:read
 - 响应体: application/json，schema `#/components/schemas/ElectricBalanceResponseBody`
 - 错误策略: HTTP 非 2xx 或业务响应 `code != 0` 时 CLI 以失败退出；缺少必需 scope 时先运行 `auth reauthorize --scope <missing_scope>`。
@@ -107,6 +107,15 @@ This file is generated from the code-owned manifest. Do not edit it.
 - 响应体: application/json，schema `#/components/schemas/ElectricFloorListResponseBody`
 - 错误策略: HTTP 非 2xx 或业务响应 `code != 0` 时 CLI 以失败退出；缺少必需 scope 时先运行 `auth reauthorize --scope <missing_scope>`。
 
+## campuslife electric history
+
+- operationId: `CampusLifeService_ElectricHistory`
+- HTTP: GET /hduhelp-neo/campuslife/electric/history
+- 说明: 查询近14天电费历史
+- 必需 scope: campuslife:electricity:read
+- 响应体: application/json，schema `#/components/schemas/ElectricHistoryResponseBody`
+- 错误策略: HTTP 非 2xx 或业务响应 `code != 0` 时 CLI 以失败退出；缺少必需 scope 时先运行 `auth reauthorize --scope <missing_scope>`。
+
 ## campuslife electric rooms
 
 - operationId: `CampusLifeService_ListRooms`
@@ -118,39 +127,10 @@ This file is generated from the code-owned manifest. Do not edit it.
 - 响应体: application/json，schema `#/components/schemas/ElectricRoomListResponseBody`
 - 错误策略: HTTP 非 2xx 或业务响应 `code != 0` 时 CLI 以失败退出；缺少必需 scope 时先运行 `auth reauthorize --scope <missing_scope>`。
 
-## campuslife fee
-
-- operationId: `CampusLifeService_Fee`
-- HTTP: GET /hduhelp-neo/campuslife/fee
-- 说明: 查询宿舍电费余额
-- 必需 scope: campuslife:electricity:read
-- 响应体: application/json，schema `#/components/schemas/FeeResponseBody`
-- 错误策略: HTTP 非 2xx 或业务响应 `code != 0` 时 CLI 以失败退出；缺少必需 scope 时先运行 `auth reauthorize --scope <missing_scope>`。
-
-## campuslife history
-
-- operationId: `CampusLifeService_ElectricHistory`
-- HTTP: GET /hduhelp-neo/campuslife/history
-- 说明: 查询近14天电费历史
-- 必需 scope: campuslife:electricity:read
-- 响应体: application/json，schema `#/components/schemas/ElectricHistoryResponseBody`
-- 错误策略: HTTP 非 2xx 或业务响应 `code != 0` 时 CLI 以失败退出；缺少必需 scope 时先运行 `auth reauthorize --scope <missing_scope>`。
-
-## campuslife v1 infostream
-
-- operationId: `CampusLifeService_InfoStream`
-- HTTP: GET /hduhelp-neo/campuslife/v1/infoStream
-- 说明: 获取天气信息流卡片(AQI/温度/停雨)
-- 参数:
-  - query lat
-  - query lng
-- 响应体: application/json，schema `#/components/schemas/InfoStreamResponseBody`
-- 错误策略: HTTP 非 2xx 或业务响应 `code != 0` 时 CLI 以失败退出；缺少必需 scope 时先运行 `auth reauthorize --scope <missing_scope>`。
-
-## campuslife v1 predict
+## campuslife weather forecast
 
 - operationId: `CampusLifeService_Predict`
-- HTTP: GET /hduhelp-neo/campuslife/v1/predict
+- HTTP: GET /hduhelp-neo/campuslife/weather/forecast
 - 说明: 获取天气预报(逐小时/逐天)
 - 参数:
   - query days
@@ -159,25 +139,25 @@ This file is generated from the code-owned manifest. Do not edit it.
 - 响应体: application/json，schema `#/components/schemas/PredictResponseBody`
 - 错误策略: HTTP 非 2xx 或业务响应 `code != 0` 时 CLI 以失败退出；缺少必需 scope 时先运行 `auth reauthorize --scope <missing_scope>`。
 
-## campuslife v1 realtime
+## campuslife weather info-stream
+
+- operationId: `CampusLifeService_InfoStream`
+- HTTP: GET /hduhelp-neo/campuslife/weather/info-stream
+- 说明: 获取天气信息流卡片(AQI/温度/停雨)
+- 参数:
+  - query lat
+  - query lng
+- 响应体: application/json，schema `#/components/schemas/InfoStreamResponseBody`
+- 错误策略: HTTP 非 2xx 或业务响应 `code != 0` 时 CLI 以失败退出；缺少必需 scope 时先运行 `auth reauthorize --scope <missing_scope>`。
+
+## campuslife weather real-time
 
 - operationId: `CampusLifeService_RealTime`
-- HTTP: GET /hduhelp-neo/campuslife/v1/realTime
-- 说明: 获取实时天气
+- HTTP: GET /hduhelp-neo/campuslife/weather/real-time
+- 说明: 获取实时天气(按当前校区坐标)
 - 参数:
   - query lat
   - query lng
 - 响应体: application/json，schema `#/components/schemas/RealTimeResponseBody`
-- 错误策略: HTTP 非 2xx 或业务响应 `code != 0` 时 CLI 以失败退出；缺少必需 scope 时先运行 `auth reauthorize --scope <missing_scope>`。
-
-## campuslife weather
-
-- operationId: `CampusLifeService_Weather`
-- HTTP: GET /hduhelp-neo/campuslife/weather
-- 说明: 查询校园天气(按当前校区坐标)
-- 参数:
-  - query lat
-  - query lng
-- 响应体: application/json，schema `#/components/schemas/WeatherResponseBody`
 - 错误策略: HTTP 非 2xx 或业务响应 `code != 0` 时 CLI 以失败退出；缺少必需 scope 时先运行 `auth reauthorize --scope <missing_scope>`。
 

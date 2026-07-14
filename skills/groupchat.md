@@ -1,7 +1,7 @@
 ---
 name: hduhelp-cli/groupchat
 source: generated
-manifest_sha256: 414ee3f014eb69d5134e1553d6b530d72fe1b901228385a24611f8b080756afe
+manifest_sha256: 738449e62bdf88f6551159a699d47438c40603f04fb7a09cf163283710f2fe0f
 ---
 
 # hduhelp-cli groupchat skill
@@ -84,69 +84,16 @@ This file is generated from the code-owned manifest. Do not edit it.
 - 响应体: application/json，schema `#/components/schemas/SyncChatGroupResponseBody`
 - 错误策略: HTTP 非 2xx 或业务响应 `code != 0` 时 CLI 以失败退出；缺少必需 scope 时先运行 `auth reauthorize --scope <missing_scope>`。
 
-## groupchat dingtalk exam
+## groupchat courses
 
-- operationId: `GroupChatService_DingTalkExam`
-- HTTP: GET /hduhelp-neo/groupchat/dingtalk/exam
-- 说明: 钉钉考试数据源
-- 必需 scope: academic:exam:read, groupchat:assistant:read
+- operationId: `GroupChatService_CourseGroups`
+- HTTP: GET /hduhelp-neo/groupchat/courses
+- 说明: 我的课程群列表
+- 必需 scope: academic:schedule:read, groupchat:group:read
 - 参数:
-  - header X-Staff-Id
-- 响应体: application/json，schema `#/components/schemas/DingTalkExamResponseBody`
-- 错误策略: HTTP 非 2xx 或业务响应 `code != 0` 时 CLI 以失败退出；缺少必需 scope 时先运行 `auth reauthorize --scope <missing_scope>`。
-
-## groupchat dingtalk infostream
-
-- operationId: `GroupChatService_DingTalkInfoStream`
-- HTTP: GET /hduhelp-neo/groupchat/dingtalk/infoStream
-- 说明: 钉钉信息流数据源
-- 必需 scope: academic:schedule:read, groupchat:assistant:read
-- 可选 scope: campuslife:campuscard:read, campuslife:electricity:read
-- 参数:
-  - header X-Staff-Id
-- 响应体: application/json，schema `#/components/schemas/DingTalkInfoStreamResponseBody`
-- 错误策略: HTTP 非 2xx 或业务响应 `code != 0` 时 CLI 以失败退出；缺少必需 scope 时先运行 `auth reauthorize --scope <missing_scope>`。
-
-## groupchat dingtalk ping
-
-- operationId: `GroupChatService_DingTalkPing`
-- HTTP: GET /hduhelp-neo/groupchat/dingtalk/ping
-- 说明: 钉钉数据源存活探测
-- 必需 scope: groupchat:assistant:read
-- 响应体: application/json，schema `#/components/schemas/PingResponseBody`
-- 错误策略: HTTP 非 2xx 或业务响应 `code != 0` 时 CLI 以失败退出；缺少必需 scope 时先运行 `auth reauthorize --scope <missing_scope>`。
-
-## groupchat dingtalk schedule now
-
-- operationId: `GroupChatService_DingTalkScheduleNow`
-- HTTP: GET /hduhelp-neo/groupchat/dingtalk/schedule/now
-- 说明: 钉钉课表数据源
-- 必需 scope: academic:schedule:read, groupchat:assistant:read
-- 参数:
-  - header X-Staff-Id
-- 响应体: application/json，schema `#/components/schemas/DingTalkScheduleResponseBody`
-- 错误策略: HTTP 非 2xx 或业务响应 `code != 0` 时 CLI 以失败退出；缺少必需 scope 时先运行 `auth reauthorize --scope <missing_scope>`。
-
-## groupchat dingtalk score
-
-- operationId: `GroupChatService_DingTalkScore`
-- HTTP: GET /hduhelp-neo/groupchat/dingtalk/score
-- 说明: 钉钉成绩数据源
-- 必需 scope: academic:grade:read, groupchat:assistant:read
-- 参数:
-  - header X-Staff-Id
-- 响应体: application/json，schema `#/components/schemas/DingTalkScoreResponseBody`
-- 错误策略: HTTP 非 2xx 或业务响应 `code != 0` 时 CLI 以失败退出；缺少必需 scope 时先运行 `auth reauthorize --scope <missing_scope>`。
-
-## groupchat dingtalk time
-
-- operationId: `GroupChatService_DingTalkTime`
-- HTTP: GET /hduhelp-neo/groupchat/dingtalk/time
-- 说明: 钉钉校园时间数据源
-- 必需 scope: academic:schedule:read, groupchat:assistant:read
-- 参数:
-  - header X-Staff-Id
-- 响应体: application/json，schema `#/components/schemas/DingTalkTimeResponseBody`
+  - query schoolYear
+  - query semester
+- 响应体: application/json，schema `#/components/schemas/CourseGroupsResponseBody`
 - 错误策略: HTTP 非 2xx 或业务响应 `code != 0` 时 CLI 以失败退出；缺少必需 scope 时先运行 `auth reauthorize --scope <missing_scope>`。
 
 ## groupchat grade get

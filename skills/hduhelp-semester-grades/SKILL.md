@@ -20,6 +20,7 @@ description: 查询 HDUHelp 当前用户指定学年、学期的本科成绩与 
 4. 若返回 `MISSING_SCOPE`，执行 `hduhelp-cli auth reauthorize --scope academic:grade:read --no-input --no-open --json`，只把 `verification_uri_complete` 的完整 URL 交给用户。不要替用户打开 Agent 浏览器，不要把用户口头回复当作授权完成；随后用 `auth resume --wait --json` 读取服务端状态。
 5. 若 `_cli.truncated=true`，保持相同 `--school-year` 和 `--semester`，使用 `_cli.next_cursor` 继续。不要扩大到目录或全局成绩接口。
 6. 成绩中 `score=0` 且 `gpa>0` 可能代表特殊等级制结果。按原始结构陈述并提示歧义，不要解释为不及格，也不要自行改写分数。
+7. 如果 stderr 出现 `UPDATE_AVAILABLE` Notice，只向用户说明当前版本和目标版本。用户明确同意后才执行 `hduhelp-cli update --yes --json`；普通成绩查询授权不等于更新授权。
 
 ## 安全规则
 
@@ -27,3 +28,4 @@ description: 查询 HDUHelp 当前用户指定学年、学期的本科成绩与 
 - 不读取、展示或要求用户粘贴 PAT。
 - 始终使用 `--json --no-input --no-open`。
 - 错误恢复只执行返回 `hint` 中当前 CLI 能解析的命令；写操作需要用户明确授权。
+- `hduhelp-cli update --check --json` 是只读操作；`hduhelp-cli update --yes --json` 会替换二进制，必须先得到用户明确确认。

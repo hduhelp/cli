@@ -167,6 +167,19 @@ work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
 archive_path="$work/$archive"
 curl -fsSL "$release_url/$archive" -o "$archive_path" || fail "unable to download $archive"
+checksums_path="$work/SHA256SUMS"
+curl -fsSL "$release_url/SHA256SUMS" -o "$checksums_path" || fail 'unable to download SHA256SUMS'
+expected_checksum=$(awk -v archive="$archive" '$2 == archive {count++; checksum=$1} END {if (count == 1) print checksum}' "$checksums_path")
+printf '%s\n' "$expected_checksum" | awk '/^[0-9a-fA-F]{64}$/ {ok=1} END {exit !ok}' || fail "SHA256SUMS does not contain exactly one valid checksum for $archive"
+expected_checksum=$(printf '%s' "$expected_checksum" | tr 'A-F' 'a-f')
+if command -v sha256sum >/dev/null 2>&1; then
+  actual_checksum=$(sha256sum "$archive_path" | awk '{print $1}')
+elif command -v shasum >/dev/null 2>&1; then
+  actual_checksum=$(shasum -a 256 "$archive_path" | awk '{print $1}')
+else
+  fail 'sha256sum or shasum is required to verify the release'
+fi
+[ "$actual_checksum" = "$expected_checksum" ] || fail "checksum mismatch for $archive"
 
 tar -xzf "$archive_path" -C "$work" "$project" || fail "archive does not contain $project"
 candidate="$work/$project"
@@ -178,7 +191,8 @@ cp "$candidate" "$staged"
 chmod 0755 "$staged"
 mv -f "$staged" "$install_dir/$project"
 state_tmp="$state_dir/.install.json.tmp.$$"
-printf '{"version":"%s","install_dir":"%s","binary":"%s"}\n' "$version" "$install_dir" "$install_dir/$project" > "$state_tmp"
+installed_at=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+printf '{"schema_version":1,"manager":"hduhelp-installer","version":"%s","install_dir":"%s","binary":"%s","installed_at":"%s"}\n' "$version" "$install_dir" "$install_dir/$project" "$installed_at" > "$state_tmp"
 mv -f "$state_tmp" "$state_file"
 echo "installed $project $version to $install_dir/$project"
 case ":${PATH:-}:" in

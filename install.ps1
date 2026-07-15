@@ -142,6 +142,25 @@ try {
     } catch {
         Fail "unable to download $archive"
     }
+    $checksumsPath = Join-Path $work "SHA256SUMS"
+    try {
+        Invoke-WebRequest -Uri "$releaseUrl/SHA256SUMS" -OutFile $checksumsPath -UseBasicParsing
+    } catch {
+        Fail "unable to download SHA256SUMS"
+    }
+    $checksumMatches = @()
+    foreach ($line in Get-Content -LiteralPath $checksumsPath) {
+        if ($line -match '^([0-9a-fA-F]{64})\s+(.+)$' -and $Matches[2] -eq $archive) {
+            $checksumMatches += $Matches[1].ToLowerInvariant()
+        }
+    }
+    if ($checksumMatches.Count -ne 1) {
+        Fail "SHA256SUMS does not contain exactly one valid checksum for $archive"
+    }
+    $actualChecksum = (Get-FileHash -LiteralPath $archivePath -Algorithm SHA256).Hash.ToLowerInvariant()
+    if ($actualChecksum -ne $checksumMatches[0]) {
+        Fail "checksum mismatch for $archive"
+    }
     Expand-Archive -LiteralPath $archivePath -DestinationPath $work -Force
     $candidate = Join-Path $work "$project.exe"
     if (-not (Test-Path -LiteralPath $candidate -PathType Leaf)) {
@@ -160,7 +179,7 @@ try {
     Copy-Item -LiteralPath $candidate -Destination $staged -Force
     Move-Item -LiteralPath $staged -Destination $binary -Force
     $stateTmp = Join-Path $stateDir ".install.json.tmp.$PID"
-    @{ version = $Version; install_dir = $installDir; binary = $binary } |
+    @{ schema_version = 1; manager = "hduhelp-installer"; version = $Version; install_dir = $installDir; binary = $binary; installed_at = [DateTime]::UtcNow.ToString("o") } |
         ConvertTo-Json -Compress |
         Set-Content -LiteralPath $stateTmp -Encoding UTF8 -NoNewline
     Move-Item -LiteralPath $stateTmp -Destination $stateFile -Force

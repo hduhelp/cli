@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "name": "hduhelp-cli-maintenance",
+  "bundle_sha256": "73c23f6b6913131b06d657133b4b85d758a713cfe71f837fd81de2d52985c5ce",
+  "files": {
+    "SKILL.md": "f7db765f5438d6b7ab41912b664f4783ff7c18c002c6a0f1a0c5650ed2dcafa1"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "name": "hduhelp-shared",
+  "bundle_sha256": "6422418516552c67ab04aaca45f3fb17098f970fdffd4bc426e2393020c5bc3f",
+  "files": {
+    "SKILL.md": "ada3680a1a438c55084ff50c297c62381de92f43d46cdfae749c5be074fc1f10"
+  }
+}

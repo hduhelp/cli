@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "name": "hduhelp-groupchat",
+  "bundle_sha256": "f2ae2aa0b5c7b50eed6d875719915163d662375e42455a9af14a8023dd80bcc0",
+  "files": {
+    "SKILL.md": "f73e49dff8437be1202065548c9ca2a1cac19d49a1b980c9d0925b8f27047d83"
+  }
+}

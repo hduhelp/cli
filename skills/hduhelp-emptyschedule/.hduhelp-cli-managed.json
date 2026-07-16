@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "name": "hduhelp-emptyschedule",
+  "bundle_sha256": "27f948fc8e835acda58ede9818e9266448c81a90bada777dc7c6e504419d3c73",
+  "files": {
+    "SKILL.md": "1da5204b6204371fdafcd67846c8975c0bed5ac9ecec2c585ae845d5084ee400"
+  }
+}

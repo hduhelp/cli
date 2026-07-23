@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>图书馆实时座位图</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: Inter, "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+      background: #eef1f1;
+      color: #202e2e;
+      letter-spacing: 0;
+    }
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+    body { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; background: #eef1f1; }
+    button, select { font: inherit; letter-spacing: 0; }
+    button { cursor: pointer; }
+    .topbar {
+      display: grid;
+      grid-template-columns: minmax(190px, 320px) minmax(0, 1fr) auto;
+      gap: 14px;
+      align-items: center;
+      min-height: 64px;
+      padding: 10px 16px;
+      background: #ffffff;
+      border-bottom: 1px solid #d6dddd;
+      z-index: 5;
+    }
+    .room-select {
+      width: 100%;
+      height: 40px;
+      padding: 0 34px 0 11px;
+      border: 1px solid #aebbbb;
+      border-radius: 6px;
+      background: #ffffff;
+      color: #202e2e;
+    }
+    .meta { min-width: 0; display: flex; align-items: baseline; gap: 9px; overflow: hidden; }
+    .meta strong { font-size: 15px; white-space: nowrap; }
+    .meta span { color: #617070; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .segmented { display: inline-flex; height: 36px; border: 1px solid #aebbbb; border-radius: 6px; overflow: hidden; background: #ffffff; }
+    .segmented button { min-width: 64px; padding: 0 11px; border: 0; border-right: 1px solid #d6dddd; background: #ffffff; color: #445252; }
+    .segmented button:last-child { border-right: 0; }
+    .segmented button[aria-pressed="true"] { background: #2c3245; color: #ffffff; }
+    .workspace { min-height: 0; position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 250px; }
+    .viewport {
+      position: relative;
+      min-width: 0;
+      min-height: 0;
+      overflow: hidden;
+      background: #e7ebeb;
+      touch-action: none;
+      cursor: grab;
+    }
+    .viewport.dragging { cursor: grabbing; }
+    .world {
+      position: absolute;
+      left: 0;
+      top: 0;
+      transform-origin: 0 0;
+      background: #ffffff;
+      box-shadow: 0 2px 12px rgba(32, 46, 46, 0.12);
+      user-select: none;
+    }
+    .plan { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: fill; pointer-events: none; }
+    .seat {
+      position: absolute;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 9px;
+      min-height: 9px;
+      padding: 0;
+      overflow: visible;
+      border: 1px solid #8d9797;
+      border-radius: 1px;
+      color: #101818;
+      font: 600 10px/1 Arial, sans-serif;
+      text-align: center;
+      box-shadow: none;
+    }
+    .seat.available { background: #ffffff; }
+    .seat.recommended { background: #23c4b7; border-color: #147f77; }
+    .seat.occupied { background: #e45f5f; border-color: #ad3737; color: #ffffff; }
+    .seat.closed { background: #aeb5b5; border-color: #747c7c; color: #ffffff; }
+    .seat.filtered { opacity: 0.18; }
+    .seat.selectable:hover { outline: 2px solid #fc814a; outline-offset: 1px; z-index: 3; }
+    .seat.selected { outline: 3px solid #202e2e; outline-offset: 2px; z-index: 4; }
+    .seat-label { display: none; pointer-events: none; white-space: nowrap; }
+    .labels-visible .seat-label { display: block; }
+    .socket-mark {
+      position: absolute;
+      right: -4px;
+      bottom: -4px;
+      width: 9px;
+      height: 9px;
+      border: 1px solid #202e2e;
+      border-radius: 50%;
+      background: #ffe666;
+      pointer-events: none;
+    }
+    .socket-mark::before, .socket-mark::after {
+      content: "";
+      position: absolute;
+      top: 2px;
+      width: 1px;
+      height: 3px;
+      background: #202e2e;
+    }
+    .socket-mark::before { left: 2px; }
+    .socket-mark::after { right: 2px; }
+    .map-tools {
+      position: absolute;
+      left: 14px;
+      bottom: 14px;
+      z-index: 4;
+      display: grid;
+      grid-template-columns: repeat(3, 40px);
+      gap: 6px;
+    }
+    .icon-button {
+      width: 40px;
+      height: 40px;
+      padding: 0;
+      border: 1px solid #aebbbb;
+      border-radius: 6px;
+      background: #ffffff;
+      color: #202e2e;
+      font-size: 20px;
+      line-height: 38px;
+      box-shadow: 0 2px 7px rgba(32, 46, 46, 0.12);
+    }
+    .sidebar { min-width: 0; padding: 16px; overflow: auto; background: #ffffff; border-left: 1px solid #d6dddd; }
+    .panel-section { padding: 0 0 16px; margin: 0 0 16px; border-bottom: 1px solid #e0e5e5; }
+    .panel-section:last-child { border-bottom: 0; }
+    .panel-title { margin: 0 0 10px; font-size: 13px; color: #617070; font-weight: 600; }
+    .stat { display: flex; justify-content: space-between; gap: 10px; margin: 7px 0; font-size: 13px; }
+    .stat strong { font-variant-numeric: tabular-nums; }
+    .legend { display: grid; gap: 9px; font-size: 12px; color: #445252; }
+    .legend-row { display: flex; align-items: center; gap: 8px; }
+    .swatch { width: 16px; height: 16px; border: 1px solid #8d9797; border-radius: 2px; flex: none; }
+    .swatch.free { background: #ffffff; }
+    .swatch.recommended { background: #23c4b7; }
+    .swatch.occupied { background: #e45f5f; }
+    .swatch.closed { background: #aeb5b5; }
+    .selection { min-height: 92px; }
+    .selection-empty { color: #7d8989; font-size: 13px; }
+    .selection-value { display: none; }
+    .selection-value.active { display: block; }
+    .selection-name { margin: 0 0 6px; font-size: 16px; font-weight: 650; }
+    .selection-ids { margin: 0 0 12px; color: #617070; font: 12px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace; overflow-wrap: anywhere; }
+    .copy-button { width: 100%; height: 36px; border: 0; border-radius: 6px; background: #2c3245; color: #ffffff; font-weight: 600; }
+    .footer {
+      min-height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 8px 16px;
+      background: #202e2e;
+      color: #ffffff;
+      font-size: 12px;
+      z-index: 5;
+    }
+    .footer span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .zoom-value { font-variant-numeric: tabular-nums; }
+    @media (max-width: 820px) {
+      .topbar { grid-template-columns: minmax(0, 1fr) auto; gap: 8px; padding: 8px; }
+      .meta { grid-column: 1 / -1; grid-row: 2; }
+      .segmented button { min-width: 54px; padding: 0 8px; font-size: 12px; }
+      .workspace { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; }
+      .sidebar { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-height: 190px; padding: 10px; border-left: 0; border-top: 1px solid #d6dddd; }
+      .panel-section { margin: 0; padding: 0; border: 0; }
+      .panel-section.legend-section { display: none; }
+      .selection { min-height: 0; }
+      .footer { padding: 7px 10px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <select id="roomSelect" class="room-select" aria-label="房间"></select>
+    <div class="meta"><strong id="mapTitle">图书馆实时座位图</strong><span id="timeSummary"></span></div>
+    <div class="segmented" aria-label="座位筛选">
+      <button type="button" data-filter="all" aria-pressed="true">全部</button>
+      <button type="button" data-filter="available" aria-pressed="false">空闲</button>
+      <button type="button" data-filter="socket" aria-pressed="false">插座</button>
+    </div>
+  </header>
+  <main class="workspace">
+    <section id="viewport" class="viewport" aria-label="座位平面图">
+      <div id="world" class="world"><img id="plan" class="plan" alt=""><div id="seats"></div></div>
+      <div class="map-tools">
+        <button id="zoomOut" class="icon-button" type="button" title="缩小" aria-label="缩小">−</button>
+        <button id="fit" class="icon-button" type="button" title="适应窗口" aria-label="适应窗口">□</button>
+        <button id="zoomIn" class="icon-button" type="button" title="放大" aria-label="放大">+</button>
+      </div>
+    </section>
+    <aside class="sidebar">
+      <section class="panel-section">
+        <h2 class="panel-title">当前房间</h2>
+        <div class="stat"><span>座位</span><strong id="seatCount">0</strong></div>
+        <div class="stat"><span>可预约</span><strong id="availableCount">0</strong></div>
+        <div class="stat"><span>带插座</span><strong id="socketCount">0</strong></div>
+      </section>
+      <section class="panel-section selection">
+        <h2 class="panel-title">已选座位</h2>
+        <div id="selectionEmpty" class="selection-empty">未选择</div>
+        <div id="selectionValue" class="selection-value">
+          <p id="selectionName" class="selection-name"></p>
+          <p id="selectionIds" class="selection-ids"></p>
+          <button id="copySelection" class="copy-button" type="button">复制选择</button>
+        </div>
+      </section>
+      <section class="panel-section legend-section">
+        <h2 class="panel-title">图例</h2>
+        <div class="legend">
+          <div class="legend-row"><span class="swatch free"></span><span>可预约</span></div>
+          <div class="legend-row"><span class="swatch recommended"></span><span>系统推荐</span></div>
+          <div class="legend-row"><span class="swatch occupied"></span><span>已占用</span></div>
+          <div class="legend-row"><span class="swatch closed"></span><span>关闭 / 锁定</span></div>
+          <div class="legend-row"><span class="socket-mark" style="position:relative;right:auto;bottom:auto"></span><span>带插座</span></div>
+        </div>
+      </section>
+    </aside>
+  </main>
+  <footer class="footer"><span id="querySummary"></span><span id="zoomValue" class="zoom-value">100%</span></footer>
+  <script>
+    "use strict";
+    const data = __HDU_LIBRARY_BOOKING_DATA__;
+    const unit = 8;
+    const state = { roomIndex: 0, filter: "all", scale: 1, x: 0, y: 0, selected: null, pointers: new Map(), dragStart: null, pinchDistance: null };
+    const el = Object.fromEntries(["roomSelect","mapTitle","timeSummary","viewport","world","plan","seats","seatCount","availableCount","socketCount","selectionEmpty","selectionValue","selectionName","selectionIds","copySelection","zoomOut","zoomIn","fit","querySummary","zoomValue"].map(id => [id, document.getElementById(id)]));
+
+    function seatClass(seat) {
+      if (seat.recommended) return "recommended";
+      if (seat.state === 0) return "available";
+      if (seat.state === 3) return "closed";
+      if (seat.state === 1 || seat.state === 4 || seat.state === 5) return "occupied";
+      return "closed";
+    }
+
+    function currentRoom() { return data.rooms[state.roomIndex]; }
+    function matchesFilter(seat) {
+      if (state.filter === "available") return seat.available;
+      if (state.filter === "socket") return seat.hasSocket;
+      return true;
+    }
+
+    function renderRoom() {
+      const room = currentRoom();
+      if (!room) return;
+      state.selected = null;
+      updateSelection();
+      const width = Math.max(Number(room.width) * unit, 320);
+      const height = Math.max(Number(room.height) * unit, 240);
+      el.world.style.width = `${width}px`;
+      el.world.style.height = `${height}px`;
+      el.plan.src = room.planUrl || "";
+      el.plan.hidden = !room.planUrl;
+      el.seats.replaceChildren();
+      for (const seat of room.seats) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = `seat ${seatClass(seat)}${seat.available ? " selectable" : ""}`;
+        button.style.left = `${Number(seat.x) * unit}px`;
+        button.style.top = `${Number(seat.y) * unit}px`;
+        button.style.width = `${Math.max(Number(seat.width) * unit, 9)}px`;
+        button.style.height = `${Math.max(Number(seat.height) * unit, 9)}px`;
+        button.dataset.seatId = seat.seatId;
+        button.title = `${room.name} ${seat.label} · ${seat.available ? "可预约" : "不可预约"}${seat.hasSocket ? " · 带插座" : ""}`;
+        button.disabled = !seat.available;
+        const label = document.createElement("span");
+        label.className = "seat-label";
+        label.textContent = seat.label;
+        button.append(label);
+        if (seat.hasSocket) {
+          const socket = document.createElement("span");
+          socket.className = "socket-mark";
+          button.append(socket);
+        }
+        button.addEventListener("click", event => {
+          event.stopPropagation();
+          selectSeat(room, seat, button);
+        });
+        el.seats.append(button);
+      }
+      el.mapTitle.textContent = room.name;
+      el.seatCount.textContent = room.seats.length;
+      el.availableCount.textContent = room.seats.filter(seat => seat.available).length;
+      el.socketCount.textContent = room.seats.filter(seat => seat.hasSocket).length;
+      applyFilter();
+      requestAnimationFrame(fitMap);
+    }
+
+    function selectSeat(room, seat, button) {
+      el.seats.querySelectorAll(".selected").forEach(item => item.classList.remove("selected"));
+      button.classList.add("selected");
+      state.selected = { roomId: room.roomId, roomName: room.name, seatId: seat.seatId, seatLabel: seat.label };
+      updateSelection();
+    }
+
+    function updateSelection() {
+      const selected = state.selected;
+      el.selectionEmpty.hidden = Boolean(selected);
+      el.selectionValue.classList.toggle("active", Boolean(selected));
+      if (!selected) return;
+      el.selectionName.textContent = `${selected.roomName} · ${selected.seatLabel}号`;
+      el.selectionIds.textContent = `roomId=${selected.roomId}\nseatId=${selected.seatId}`;
+    }
+
+    function applyFilter() {
+      const room = currentRoom();
+      if (!room) return;
+      el.seats.querySelectorAll(".seat").forEach((button, index) => button.classList.toggle("filtered", !matchesFilter(room.seats[index])));
+      document.querySelectorAll("[data-filter]").forEach(button => button.setAttribute("aria-pressed", String(button.dataset.filter === state.filter)));
+    }
+
+    function applyTransform() {
+      el.world.style.transform = `translate(${state.x}px, ${state.y}px) scale(${state.scale})`;
+      el.world.classList.toggle("labels-visible", state.scale >= 1);
+      el.zoomValue.textContent = `${Math.round(state.scale * 100)}%`;
+    }
+
+    function fitMap() {
+      const viewport = el.viewport.getBoundingClientRect();
+      const width = el.world.offsetWidth;
+      const height = el.world.offsetHeight;
+      if (!viewport.width || !viewport.height || !width || !height) return;
+      state.scale = Math.min((viewport.width - 36) / width, (viewport.height - 36) / height, 1.25);
+      state.scale = Math.max(state.scale, 0.15);
+      state.x = (viewport.width - width * state.scale) / 2;
+      state.y = (viewport.height - height * state.scale) / 2;
+      applyTransform();
+    }
+
+    function zoomAt(nextScale, clientX, clientY) {
+      const bounds = el.viewport.getBoundingClientRect();
+      const px = clientX - bounds.left;
+      const py = clientY - bounds.top;
+      const worldX = (px - state.x) / state.scale;
+      const worldY = (py - state.y) / state.scale;
+      state.scale = Math.min(4, Math.max(0.15, nextScale));
+      state.x = px - worldX * state.scale;
+      state.y = py - worldY * state.scale;
+      applyTransform();
+    }
+
+    el.roomSelect.addEventListener("change", () => { state.roomIndex = Number(el.roomSelect.value); renderRoom(); });
+    document.querySelectorAll("[data-filter]").forEach(button => button.addEventListener("click", () => { state.filter = button.dataset.filter; applyFilter(); }));
+    el.zoomIn.addEventListener("click", () => { const b = el.viewport.getBoundingClientRect(); zoomAt(state.scale * 1.25, b.left + b.width / 2, b.top + b.height / 2); });
+    el.zoomOut.addEventListener("click", () => { const b = el.viewport.getBoundingClientRect(); zoomAt(state.scale / 1.25, b.left + b.width / 2, b.top + b.height / 2); });
+    el.fit.addEventListener("click", fitMap);
+    el.viewport.addEventListener("wheel", event => { event.preventDefault(); zoomAt(state.scale * (event.deltaY < 0 ? 1.12 : 0.89), event.clientX, event.clientY); }, { passive: false });
+    el.viewport.addEventListener("pointerdown", event => {
+      if (event.target.closest(".seat")) return;
+      state.pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      el.viewport.setPointerCapture(event.pointerId);
+      if (state.pointers.size === 1) state.dragStart = { x: event.clientX, y: event.clientY, mapX: state.x, mapY: state.y };
+      if (state.pointers.size === 2) {
+        const points = [...state.pointers.values()];
+        state.pinchDistance = Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y);
+      }
+      el.viewport.classList.add("dragging");
+    });
+    el.viewport.addEventListener("pointermove", event => {
+      if (!state.pointers.has(event.pointerId)) return;
+      state.pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      if (state.pointers.size === 1 && state.dragStart) {
+        state.x = state.dragStart.mapX + event.clientX - state.dragStart.x;
+        state.y = state.dragStart.mapY + event.clientY - state.dragStart.y;
+        applyTransform();
+      } else if (state.pointers.size === 2) {
+        const points = [...state.pointers.values()];
+        const distance = Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y);
+        if (state.pinchDistance > 0) zoomAt(state.scale * distance / state.pinchDistance, (points[0].x + points[1].x) / 2, (points[0].y + points[1].y) / 2);
+        state.pinchDistance = distance;
+      }
+    });
+    function releasePointer(event) {
+      state.pointers.delete(event.pointerId);
+      state.dragStart = null;
+      if (state.pointers.size < 2) state.pinchDistance = null;
+      if (state.pointers.size === 0) el.viewport.classList.remove("dragging");
+    }
+    el.viewport.addEventListener("pointerup", releasePointer);
+    el.viewport.addEventListener("pointercancel", releasePointer);
+    el.copySelection.addEventListener("click", async () => {
+      if (!state.selected) return;
+      const text = JSON.stringify(state.selected);
+      try { await navigator.clipboard.writeText(text); el.copySelection.textContent = "已复制"; }
+      catch { el.selectionIds.textContent = text; }
+      setTimeout(() => { el.copySelection.textContent = "复制选择"; }, 1200);
+    });
+    el.plan.addEventListener("error", () => { el.plan.hidden = true; });
+    el.plan.addEventListener("load", () => { el.plan.hidden = false; });
+    window.addEventListener("resize", fitMap);
+
+    for (const [index, room] of data.rooms.entries()) {
+      const option = document.createElement("option");
+      option.value = String(index);
+      option.textContent = `${room.name}（${room.seats.filter(seat => seat.available).length} 可预约）`;
+      el.roomSelect.append(option);
+    }
+    el.timeSummary.textContent = `${data.date || ""} ${data.beginTime || ""}–${data.endTime || ""} · 1人`;
+    el.querySummary.textContent = `实时查询 ${data.queriedAt || ""} · ${data.availableSeatCount ?? 0} 个可预约座位`;
+    if (data.rooms.length === 0) {
+      el.mapTitle.textContent = "没有返回房间";
+      el.roomSelect.disabled = true;
+    } else {
+      renderRoom();
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "name": "hdu-library-booking",
+  "bundle_sha256": "72b3f2c1cc84f3c9bed972075aa168252ae2585e85e0b3341e3bec54ee11aa4b",
+  "files": {
+    "SKILL.md": "8985cdf1b7e70b714961e5c58fb1172467b76de3b265b50413fda70d1d45c6e8",
+    "assets/seat-map.html": "61b2454981236c1cae5fde242177b468fe9348907266422b0ce439647c882699",
+    "scripts/render-seat-map.mjs": "870df0111b2abdb29ca76a50f0f7c69f2306fd6066895f953b9a3eab95f5194e"
+  }
+}

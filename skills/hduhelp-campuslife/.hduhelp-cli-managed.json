@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "name": "hduhelp-campuslife",
-  "bundle_sha256": "1c35e53a945dd5052980205009df7c950f6f4d03f98f395f79e8889420f19ee8",
+  "bundle_sha256": "b028d2a43c2adcae4f1a0f74088747d0105d56501beb924b1e20ddb7c05b1efc",
   "files": {
-    "SKILL.md": "54fafe32d044348c629360ef1f8bebabd9d8c1a80c10b11a01f9aeeadb466e7b"
+    "SKILL.md": "13ee7358e097d69e8144654a7c9ca0d2bdd36fcf590ba1b928ce87eeacc91e40"
   }
 }

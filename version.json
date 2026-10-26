@@ -1,41 +1,41 @@
 {
   "schema_version": 1,
-  "version": "0.4.98",
-  "revision": "2ac9c2824b93592bd92b0e53304568056f71fcf2",
-  "manifest_sha256": "63c788282b11b4a20fbea8f61aacac002cff0fd480c42e8c90a154f388a94476",
-  "built_at": "2026-10-26T09:24:10Z",
-  "release_tag": "v0.4.98",
+  "version": "0.4.99",
+  "revision": "496180c3610de42ec45abbb990eee1a1d9b639e0",
+  "manifest_sha256": "aa122bb16d573a177b7699605dd5d085c74e091e0d8c7fab7c05289a4fa094fd",
+  "built_at": "2026-10-26T10:42:46Z",
+  "release_tag": "v0.4.99",
   "checksum_asset": "SHA256SUMS",
   "platforms": [
     {
       "os": "darwin",
       "arch": "amd64",
-      "archive": "hduhelp-cli_0.4.98_darwin_amd64.tar.gz"
+      "archive": "hduhelp-cli_0.4.99_darwin_amd64.tar.gz"
     },
     {
       "os": "darwin",
       "arch": "arm64",
-      "archive": "hduhelp-cli_0.4.98_darwin_arm64.tar.gz"
+      "archive": "hduhelp-cli_0.4.99_darwin_arm64.tar.gz"
     },
     {
       "os": "linux",
       "arch": "amd64",
-      "archive": "hduhelp-cli_0.4.98_linux_amd64.tar.gz"
+      "archive": "hduhelp-cli_0.4.99_linux_amd64.tar.gz"
     },
     {
       "os": "linux",
       "arch": "arm64",
-      "archive": "hduhelp-cli_0.4.98_linux_arm64.tar.gz"
+      "archive": "hduhelp-cli_0.4.99_linux_arm64.tar.gz"
     },
     {
       "os": "windows",
       "arch": "amd64",
-      "archive": "hduhelp-cli_0.4.98_windows_amd64.zip"
+      "archive": "hduhelp-cli_0.4.99_windows_amd64.zip"
     },
     {
       "os": "windows",
       "arch": "arm64",
-      "archive": "hduhelp-cli_0.4.98_windows_arm64.zip"
+      "archive": "hduhelp-cli_0.4.99_windows_arm64.zip"
     }
   ]
 }

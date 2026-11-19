@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "name": "hduhelp-academic",
-  "bundle_sha256": "257dfc75cd8a65b19b0a4b0ddd8a20f1e8215ce940c201d6e7c3d4338f9df62f",
+  "bundle_sha256": "cdbe6d7c38fb7b221c2e9a331302121e0e75718062f529439f610fe377d0584d",
   "files": {
-    "SKILL.md": "d05bcbbaae9258c83d18e675aff6da5d4c48b28797cd5d1e7bdbac818c234b29"
+    "SKILL.md": "f04fa48865adcc3f929d03fd12e61db375900290b9ab9069218abf0526e3368e"
   }
 }

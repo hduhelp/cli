@@ -15,17 +15,17 @@ description: 使用 hduhelp-cli 完成杭电图书馆座位预约、实时选座
 1. 空间缺失，或只有空间名称而没有 `categoryId/contentId`：调用 `hduhelp-cli librarybooking categories --json`，展示未禁用分类，等待用户选择。名称能唯一匹配时可直接采用对应 ID。
 2. 日期、开始时间或时长任一缺失：调用 `hduhelp-cli librarybooking options --category-id <id> --content-id <id> --json`。只展示返回的 `dates[].times[]` 组合；时长必须来自所选开始时间的 `durationHours`。
 3. 前四项齐全：调用 `hduhelp-cli librarybooking seats search --category-id <id> --content-id <id> --date <YYYY-MM-DD> --begin-time <HH:mm> --duration-hours <n> --output-file <临时JSON>`。
-4. 用本 Skill 的 `scripts/render-seat-map.mjs` 生成页面：`node <本Skill目录>/scripts/render-seat-map.mjs --input <临时JSON> --output <座位图HTML>`，然后打开该 HTML。页面保持所有座位颜色，缩小到 1 倍以下隐藏座位号，放大到 1 倍及以上显示座位号；用户可切换房间、筛选空闲/插座座位并点击可预约座位。
+4. 用本 Skill 的 `scripts/render-seat-map.mjs` 生成页面：`node <本Skill目录>/scripts/render-seat-map.mjs --input <临时JSON> --output <座位图HTML>`，然后打开该 HTML。用户可切换房间、筛选空闲或带插座的座位，单击可预约座位。手机上单指拖动平面图，双指张合可连续缩放，放大到 1 倍及以上显示座位号。
 5. 等待用户给出页面中选中的 `roomId` 和 `seatId`。复述空间、日期、时间、房间和座位号，让用户确认是在执行真实预约；不要替用户选择座位。
-6. 用户确认后调用 `hduhelp-cli librarybooking bookings post --data '<包含 categoryId、contentId、date、beginTime、durationHours、roomId、seatId 的 JSON>' --yes --json`。服务端会再次实时验座，失败时重新查询，不复用过期结果。
+6. 用户确认后调用 `hduhelp-cli librarybooking bookings create --data '<包含 categoryId、contentId、date、beginTime、durationHours、roomId、seatId 的 JSON>' --yes --json`。服务端会再次实时验座，失败时重新查询，不复用过期结果。
 
-用户改变空间、日期、时间、时长，或明确放弃选座时，删除本次临时 JSON/HTML。后端会在每次实时座位查询后自动释放上游推荐锁，调用方无需额外执行解锁操作。若实时查询没有空座，给出改时间或空间的选项，不循环请求。
+用户改变空间、日期、时间、时长，或明确放弃选座时，删除本次临时 JSON/HTML。若实时查询没有空座，给出改时间或空间的选项，不循环请求。
 
 ## 取消流程
 
-取消前无条件先调用 `hduhelp-cli librarybooking bookings get --json`，向用户展示 `cancellable=true` 的预约（预约编号、房间、座位、开始和结束时间），等待用户选择。即使用户直接给了 `bookingId`，也必须先查询并确认它仍在可取消列表中。
+取消前无条件先调用 `hduhelp-cli librarybooking bookings list --json`，向用户展示 `cancellable=true` 的预约（预约编号、房间、座位、开始和结束时间），等待用户选择。即使用户直接给了 `bookingId`，也必须先查询并确认它仍在可取消列表中。
 
-用户选定后先运行 `hduhelp-cli librarybooking bookings delete --booking-id <id> --dry-run --json`，展示将取消的预约并等待明确确认；确认后仅把 `--dry-run` 替换为 `--yes` 执行。不要取消 `cancellable=false` 的记录，也不要把“查询预约”当作取消成功。
+用户选定后先运行 `hduhelp-cli librarybooking bookings cancel --booking-id <id> --dry-run --json`，展示将取消的预约并等待明确确认；确认后仅把 `--dry-run` 替换为 `--yes` 执行。不要取消 `cancellable=false` 的记录，也不要把“查询预约”当作取消成功。
 
 ## 边界
 

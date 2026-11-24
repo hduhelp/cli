@@ -1,12 +1,12 @@
 ---
 name: hdu-library-booking
 domain: librarybooking
-description: 使用 hduhelp-cli 完成杭电图书馆座位预约、实时选座、查看预约和取消预约；当用户提到预约图书馆、自习室、阅览室、书院座位或取消图书馆座位时使用。
+description: 使用 hduhelp-cli 完成杭电图书馆座位预约、用随包 HTML 主动展示实时座位图、查看预约和取消预约；当用户提到预约图书馆、自习室、阅览室、书院座位或取消图书馆座位时使用。
 ---
 
 # HDU 图书馆座位预约
 
-先运行 `hduhelp-cli capabilities --domain librarybooking --json`，并用 `hduhelp-cli commands list --domain librarybooking --json` 校验当前版本操作。只使用接口返回的 ID，不猜测空间、日期、时间、房间、座位或预约编号。人数由后端固定为 1，不向用户询问人数，也不传人数参数。
+Mate 工作模式使用当前已挂载的图书馆 MCP 工具查询和提交。使用 CLI 时，先运行 `hduhelp-cli capabilities --domain librarybooking --json`，并用 `hduhelp-cli commands list --domain librarybooking --json` 校验当前版本操作。只使用接口返回的 ID，不猜测空间、日期、时间、房间、座位或预约编号。人数由后端固定为 1，不向用户询问人数，也不传人数参数。
 
 ## 预约流程
 
@@ -14,10 +14,12 @@ description: 使用 hduhelp-cli 完成杭电图书馆座位预约、实时选座
 
 1. 空间缺失，或只有空间名称而没有 `categoryId/contentId`：调用 `hduhelp-cli librarybooking categories --json`，展示未禁用分类，等待用户选择。名称能唯一匹配时可直接采用对应 ID。
 2. 日期、开始时间或时长任一缺失：调用 `hduhelp-cli librarybooking options --category-id <id> --content-id <id> --json`。只展示返回的 `dates[].times[]` 组合；时长必须来自所选开始时间的 `durationHours`。
-3. 前四项齐全：调用 `hduhelp-cli librarybooking seats search --category-id <id> --content-id <id> --date <YYYY-MM-DD> --begin-time <HH:mm> --duration-hours <n> --output-file <临时JSON>`。
-4. 用本 Skill 的 `scripts/render-seat-map.mjs` 生成页面：`node <本Skill目录>/scripts/render-seat-map.mjs --input <临时JSON> --output <座位图HTML>`，然后打开该 HTML。用户可切换房间、筛选空闲或带插座的座位，单击可预约座位。手机上单指拖动平面图，双指张合可连续缩放，放大到 1 倍及以上显示座位号。
-5. 等待用户给出页面中选中的 `roomId` 和 `seatId`。复述空间、日期、时间、房间和座位号，让用户确认是在执行真实预约；不要替用户选择座位。
-6. 用户确认后调用 `hduhelp-cli librarybooking bookings create --data '<包含 categoryId、contentId、date、beginTime、durationHours、roomId、seatId 的 JSON>' --yes --json`。服务端会再次实时验座，失败时重新查询，不复用过期结果。
+3. 空间、日期、开始时间、时长确定后查询一次座位。CLI 用 `hduhelp-cli librarybooking seats search --category-id <id> --content-id <id> --date <YYYY-MM-DD> --begin-time <HH:mm> --duration-hours <n> --output-file <临时JSON>`。在 Mate 已调用 `hduhelp_librarybooking_seats_search` 时，直接用这次工具返回或落盘的完整结果。不要为作图重复查询或逐个统计房间。
+4. 用随包模板生成座位图，有空座就在本轮回复里直接展示。
+   - **HDU Mate 工作模式**：运行 `node <本Skill目录>/scripts/render-seat-map.mjs --input <临时JSON> --output <座位图HTML> --inline`。脚本报告 `availableSeats` 大于 0 时立即调用 workspace 的 `show_html`，传入生成的 HTML 路径和标题「图书馆实时座位图」。将返回的展示标记单独放在回复里一行。超出卡片大小限制时，用 `publish_file` 交付完整 HTML。
+   - **其他宿主**：运行同一条渲染命令，省略 `--inline`，用宿主的 HTML 预览打开生成的文件。没有预览能力时，提供可打开的 HTML 文件。
+5. 请用户点选座位，点「复制预约语句」后把整句话粘贴到对话。根据其中的房间 ID、座位 ID 和对应的查询时段核对选座，复述空间、日期、时间、房间和座位号，请用户确认执行真实预约。
+6. 用户确认后用预约工具提交，CLI 命令为 `hduhelp-cli librarybooking bookings create --data '<包含 categoryId、contentId、date、beginTime、durationHours、roomId、seatId 的 JSON>' --yes --json`。服务端会再次实时验座，失败时重新查询，不复用过期结果。
 
 用户改变空间、日期、时间、时长，或明确放弃选座时，删除本次临时 JSON/HTML。若实时查询没有空座，给出改时间或空间的选项，不循环请求。
 

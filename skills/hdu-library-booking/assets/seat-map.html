@@ -87,7 +87,7 @@
     .selection-info { min-width: 0; overflow-wrap: anywhere; }
     .selection-empty { color: var(--muted); font-size: 14px; }
     .selection-name { margin: 0; font-size: 15px; font-weight: 600; }
-    .selection-ids { margin: 2px 0 0; max-height: 3.5em; overflow: auto; color: var(--muted); font: 12px/1.4 ui-monospace, monospace; user-select: all; }
+    .selection-phrase { margin: 2px 0 0; color: var(--muted); font-size: 13px; user-select: all; }
     .confirm { flex: none; min-height: 44px; padding: 0 20px; border-radius: 24px; font-weight: 600; color: var(--on-action); background: var(--action); }
     .confirm:disabled { color: var(--muted); background: var(--fill-strong); }
     [hidden] { display: none !important; }
@@ -138,9 +138,9 @@
         <div class="selection-info" aria-live="polite">
           <span id="selectionEmpty" class="selection-empty">请选择座位</span>
           <div id="selectionValue" hidden><p id="selectionName" class="selection-name"></p>
-            <p id="selectionIds" class="selection-ids"></p></div>
+            <p id="selectionPhrase" class="selection-phrase"></p></div>
         </div>
-        <button id="copySelection" class="confirm" type="button" disabled>复制选择</button>
+        <button id="copySelection" class="confirm" type="button" disabled>复制预约语句</button>
       </div>
     </footer>
   </main>
@@ -149,7 +149,7 @@
     const data = __HDU_LIBRARY_BOOKING_DATA__;
     const unit = 8;
     const state = { roomIndex: 0, filter: "all", scale: 1, x: 0, y: 0, selected: null };
-    const el = Object.fromEntries(["roomSelect","recommendLegend","timeSummary","viewport","world","plan","seats","seatCount","availableCount","socketCount","selectionEmpty","selectionValue","selectionName","selectionIds","copySelection","zoomOut","zoomIn","fit","querySummary","zoomValue"].map(id => [id, document.getElementById(id)]));
+    const el = Object.fromEntries(["roomSelect","recommendLegend","timeSummary","viewport","world","plan","seats","seatCount","availableCount","socketCount","selectionEmpty","selectionValue","selectionName","selectionPhrase","copySelection","zoomOut","zoomIn","fit","querySummary","zoomValue"].map(id => [id, document.getElementById(id)]));
 
     function seatClass(seat) {
       if (seat.recommended) return "recommended";
@@ -226,9 +226,10 @@
       el.selectionEmpty.hidden = Boolean(selected);
       el.selectionValue.hidden = !selected;
       el.copySelection.disabled = !selected;
+      el.copySelection.textContent = "复制预约语句";
       if (!selected) return;
       el.selectionName.textContent = `${selected.roomName} · ${selected.seatLabel}号`;
-      el.selectionIds.textContent = `roomId=${selected.roomId}\nseatId=${selected.seatId}`;
+      el.selectionPhrase.textContent = `我要预约 ${data.date} ${data.beginTime}–${data.endTime} 的${selected.roomName} ${selected.seatLabel} 号座位（房间 ID：${selected.roomId}，座位 ID：${selected.seatId}），帮我完成预约。`;
     }
 
     function applyFilter() {
@@ -326,10 +327,24 @@
     }, true);
     el.copySelection.addEventListener("click", async () => {
       if (!state.selected) return;
-      const text = JSON.stringify(state.selected);
-      try { await navigator.clipboard.writeText(text); el.copySelection.textContent = "已复制"; }
-      catch { el.selectionIds.textContent = text; }
-      setTimeout(() => { el.copySelection.textContent = "复制选择"; }, 1200);
+      const phrase = el.selectionPhrase.textContent;
+      let copied = false;
+      try {
+        await navigator.clipboard.writeText(phrase);
+        copied = true;
+      } catch {
+        // Some embedded WebViews only support copying a document selection.
+        if (phrase !== el.selectionPhrase.textContent || !state.selected) return;
+        const range = document.createRange();
+        range.selectNodeContents(el.selectionPhrase);
+        const selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+        copied = document.execCommand("copy");
+      }
+      if (phrase === el.selectionPhrase.textContent && state.selected) {
+        el.copySelection.textContent = copied ? "已复制" : "请长按语句复制";
+      }
     });
     el.plan.addEventListener("error", () => { el.plan.hidden = true; });
     el.plan.addEventListener("load", () => { el.plan.hidden = false; });

@@ -17,7 +17,7 @@ function fail(message) {
 const input = argument("--input");
 const output = argument("--output");
 if (!input || !output) {
-  fail("usage: node render-seat-map.mjs --input seats.json --output seat-map.html");
+  fail("usage: node render-seat-map.mjs --input seats.json --output seat-map.html [--inline]");
 }
 
 let raw;
@@ -40,7 +40,18 @@ try {
   fail(`parse seat response: ${error.message}`);
 }
 
-const data = response?.data ?? response;
+// The MCP result file can contain text content blocks or structuredContent.
+let payload = response?.structuredContent ?? response?.content ?? response;
+if (Array.isArray(payload)) {
+  const block = payload.find(item => item?.type === "text");
+  try {
+    payload = JSON.parse(block?.text);
+  } catch {
+    fail("MCP seat response does not contain JSON text");
+  }
+}
+const body = payload?.status_code !== undefined ? payload.data : payload;
+const data = body?.data ?? body;
 if (!data || !Array.isArray(data.rooms)) {
   fail("seat response does not contain data.rooms");
 }
@@ -63,13 +74,17 @@ if (!template.includes(marker)) {
   fail("seat map template marker is missing");
 }
 
+// Inline cards run offline. Keep seat coordinates and omit remote floor plans.
+if (process.argv.includes("--inline")) {
+  for (const room of data.rooms) delete room.planUrl;
+}
 const serialized = JSON.stringify(data)
   .replaceAll("<", "\\u003c")
   .replaceAll(">", "\\u003e")
   .replaceAll("&", "\\u0026")
   .replaceAll("\u2028", "\\u2028")
   .replaceAll("\u2029", "\\u2029");
-const rendered = template.replace(marker, serialized);
+const rendered = template.replace(marker, () => serialized);
 const outputPath = resolve(output);
 const temporaryPath = `${outputPath}.tmp-${process.pid}`;
 try {

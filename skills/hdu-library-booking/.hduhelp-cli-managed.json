@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
   "name": "hdu-library-booking",
-  "bundle_sha256": "c0a5bbc77db64e2c8327686e08c67e89ad2c142ba45b3f49da426ad038daa5c6",
+  "bundle_sha256": "b0257a5edd8278050d93ae290770f74ec15529e28c6d74c800a4d0906c4edbca",
   "files": {
-    "SKILL.md": "641fd08b9b938f71fca66245cf09285ee8b9a73af4ddfb37cae52843c3a89495",
-    "assets/seat-map.html": "5f9cd3b30d05619c3934a32107455c13bd40a3a899f129a18647680eb18b1c3a",
-    "scripts/render-seat-map.mjs": "870df0111b2abdb29ca76a50f0f7c69f2306fd6066895f953b9a3eab95f5194e"
+    "SKILL.md": "0dbc9e62b7ec05ac04e2030ecb0f8e24239f99b9137801639fccc0c54ad454bc",
+    "assets/seat-map.html": "2b1967eb2ae7de12dd910e4b378f85eb36e1e6452113920414e64cf5e98d31d5",
+    "scripts/render-seat-map.mjs": "3258ad02d561cbbd0e1cc417cb13f79934ebc6c4b3edcb568322e40b8159388d"
   }
 }
